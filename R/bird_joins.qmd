@@ -1,0 +1,60 @@
+---
+title: "Day 7: Tasks & Activities"
+author: "J"
+format: html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(dplyr)
+library(janitor)
+library(here)
+library(lubridate)
+```
+
+## Task 1
+Joins on birds
+```{r}
+bird_observations <- read_csv(here::here("data", "52_pp52_birds_1.csv"))
+
+sites <- read_csv(here::here("data", "52_pp52_sites_1.csv"))
+
+surveys <- read_csv(here::here("data", "52_pp52_surveys_1.csv"))
+
+taxalist <- read_csv(here::here("data", "52_pp52_taxalist_1.csv"))
+
+birds_subset <- bird_observations %>%
+  filter(species_id %in% c("BHCO", "RWBL")) %>% 
+  filter(site_id %in% c("LI-W", "NU-C"))
+```
+
+Left Join Practice
+```{r}
+birds_left <- birds_subset %>%
+  left_join(sites) %>%
+  left_join(taxalist)
+```
+
+Full Join Practice
+```{r}
+birds_full <- full_join(birds_subset, sites)
+```
+
+## Task 2
+Data wrangling and visualization with birds
+```{r}
+birds_newname <- bird_observations %>% 
+  rename(bird_obs_notes = notes) %>% 
+  full_join(sites) %>% 
+  full_join(surveys) %>% 
+  full_join(taxalist) %>% 
+  select(survey_date, common_name, park_name, bird_count) %>% 
+  mutate(survey_month = lubridate::month(survey_date)) %>% 
+  relocate(survey_month, .after = survey_date) %>% 
+  group_by(park_name, survey_month) %>% 
+  summarise(total_number_birds = sum(bird_count, na.rm = TRUE)) %>% 
+  filter(park_name  %in% c("Lindo", "Orme", "Palomino", "Sonrisa"))
+```
+
